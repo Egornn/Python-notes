@@ -13,8 +13,12 @@ class Note:
         return f"{self.id}: {self.title}"
     
     def __repr__(self) -> str:
-        keys = ["ID", "Title", 'Text', 'Time of creation', 'Creation date']
+        keys = ["id", "Title", 'Text', 'Time of creation', 'Creation date']
         values = [self.id, self.title, self.body, self.time, str(self.date)]
         return json.dumps(dict(zip(keys, values)), ensure_ascii=False)
-       
+        # return  dict(zip(keys, values))
+
+    def updateDate(self):
+        self.time = datetime.now().strftime("%H:%M:%S")
+        self.date = date.today()
         
