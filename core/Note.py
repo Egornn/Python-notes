@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import date
+
 import json
 class Note:
     def __init__(self, id):
@@ -13,5 +14,7 @@ class Note:
     
     def __repr__(self) -> str:
         keys = ["ID", "Title", 'Text', 'Time of creation', 'Creation date']
-        values = [self.id, self.title, self.body, self.time, self.date]
-        return json.dumps(dict(zip(keys, values)))
+        values = [self.id, self.title, self.body, self.time, str(self.date)]
+        return json.dumps(dict(zip(keys, values)), ensure_ascii=False)
+       
+        

@@ -24,6 +24,15 @@ def execute(command):
     if command =="list":
         for note in NOTE_LIST:
             print(str(note))
+            print(repr(note))
+    if command == "change":
+        pass
+    if command == 'remove':
+        pass
+    if command == 'save':
+        pass
+    if command == 'load':
+        pass
     if command=='exit':
         sys.exit()
 
