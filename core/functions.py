@@ -2,6 +2,7 @@ import sys
 from core.Note import Note
 import core.NotesList 
 import json
+import datetime 
 import core.functions
 
 global COMMANDS, NOTE_LIST, ID
@@ -16,17 +17,16 @@ def execute(command):
         print (COMMANDS)
 
     if command == 'add':
-        print(ID)
         new_note =  Note(ID)
         ID=ID+1
         new_note.title=input ('Введите заголовок: ')
         new_note.body=input ('Введите текст заметки: ')
         NOTE_LIST.append(new_note)
+        print('Заметка сохранена, не забудьте выполнить сохранение изменений всех заметок("save") перед выходом')
 
 
     if command =="list":
-        for note in NOTE_LIST:
-            print(str(note))
+        listNotes(NOTE_LIST)
 
     if command == "change":
         id = transform(input ("Введите ID заметки для обновления: "))
@@ -49,14 +49,39 @@ def execute(command):
             print('Заметки с таким ID не существует, используйте list, чтобы просмотреть ID существующих заметок')
    
     if command == 'save':
-        pass
+        isCorrect=False
+        while not isCorrect:
+            print ('Введите путь к файлу, для сохранения (оставьте пустым для сохранения по умолчанию)')
+            path=input()
+            isCorrect=True
+            try:
+                if path=="": path ='savedata.json'  
+                save(path)
+                isCorrect=True
+            except:
+                print('Путь некорректен/недоступен')
+        print("Сохранено")
+        
 
     if command == 'load':
-        pass
+        isCorrect=False
+        while not isCorrect:
+            print ('Введите путь к файлу, для загрузки (оставьте пустым для сохранения по умолчанию)')
+            path=input()
+            isCorrect=True
+            try:
+                if path=="": path ='savedata.json'  
+                load(path)
+                isCorrect=True
+            except:
+                print('Путь некорректен/недоступен')
+        print("Загружено")
     
     if command == 'find':
-        pass
-    
+        findByDate()
+        
+        
+        
     if command == 'read':
         id = transform(input ("Введите ID заметки для чтения: "))
         isExist=False
@@ -70,9 +95,9 @@ def execute(command):
    
     
     if command=='exit':
-        # exit = input('Убедитесь, что изменения были сохранены. Введите "exit" повторно для закрытия программы:  ')
-        # if exit == 'exit':
-        sys.exit()
+        exit = input('Убедитесь, что изменения были сохранены. Введите "exit" повторно для закрытия программы:  ')
+        if exit == 'exit':
+            sys.exit()
 
 
 
@@ -98,3 +123,72 @@ def transform(inp):
     except:
         print("Введено некорректное число")
         return inp
+    
+def listNotes(note_list):
+    for note in note_list:
+            print(str(note))
+
+
+def save (path):
+    global NOTE_LIST
+    with open(path, "w") as save_file:
+        save_file.write('[\n')
+        for note in NOTE_LIST:
+            json_string = json.dumps(note.dictionaryJson(), ensure_ascii=False)
+            save_file.write(json_string+',\n')
+        save_file.write(']')
+    save_file.close()
+    
+
+
+
+def load(path):
+    global NOTE_LIST, ID
+    NOTE_LIST = []
+    ID=0
+    used_id=[]
+    with open("savedata.json", "r") as file:
+        parsed_data = json.load(file)   
+    for el in parsed_data:
+        if el['id'] in used_id:
+            print('Данные с повторяющимися ID, ошибка')
+            break
+        used_id.append(el['id'])
+        loaded_note=Note (int(el['id']))
+        loaded_note.title = el['title']
+        loaded_note.body = el['body']
+        loaded_note.time = datetime.datetime.strptime(el['time'], '%H:%M:%S')
+        loaded_note.date = datetime.datetime.strptime(el['date'], '%Y-%m-%d')
+        NOTE_LIST.append(loaded_note)
+        
+    ID=max(used_id)
+    
+
+
+def findByDate():
+    global NOTE_LIST
+    isCorrect=False
+    while not isCorrect:
+        date = input ('Введите дату, после которой изменена заметка в формате DD/MM/YY: ')
+        try:
+            date_min =datetime.datetime.strptime(date, '%d/%m/%y').date()
+            isCorrect=True
+        except ValueError: 
+            print('Некорректная дата')
+    
+    isCorrect=False
+    while not isCorrect:
+        date = input ('Введите дату, до которой изменена заметка в формате DD/MM/YY: ')
+        try:
+            date_max = datetime.datetime.strptime(date, '%d/%m/%y').date()
+            isCorrect=True
+        except ValueError: 
+            print('Некорректная дата')
+
+    notes_subset =[]
+    for note in NOTE_LIST:
+        date_of_note = note.date
+        if (date_of_note>=date_min) and (date_of_note<=date_max):
+            notes_subset.append(note)
+    listNotes(notes_subset)
+    
